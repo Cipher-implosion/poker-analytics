@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
 
 # 接続情報を変数で定義
-username = "cipher"
+# username = "cipher"   # mac
+username = "postgres"   # windows
 password = "password"  # パスワードがある場合は入力
 host = "localhost"
 port = 5432
