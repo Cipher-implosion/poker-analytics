@@ -241,10 +241,12 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                         except ValueError as e:
                             print(f"入力エラー: {e}")
                 elif action == "A":
-                    all_in_amount = player_stacks[player]
-                    player_bets[player] += all_in_amount
+                    all_in_amount = player_stacks[player] + player_bets[player] 
+                    current_bet = all_in_amount
+                    player_bets[player] = all_in_amount
                     player_stacks[player] = 0
                     all_in_players.append((player, all_in_amount))
+                    last_raiser = player
                     print(f"{player} はオールインしました ({all_in_amount})。")
                     all_called = False
                 
