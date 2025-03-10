@@ -44,12 +44,11 @@ def preflop_action(players, player_positions, small_blind, big_blind):
             
             while True:
                 available_actions = ["F"]
-                call_amount = current_bet - player_bets[player]
+                call_amount = max(0, current_bet - player_bets[player])  # 修正: 二重控除防止
                 
-                if player_bets[player] < current_bet:
-                    if player_stacks[player] >= call_amount:
-                        available_actions.append("C")
-                else:
+                if player_stacks[player] >= call_amount:
+                    available_actions.append("C")
+                if player_bets[player] == current_bet:
                     available_actions.append("K")  
                 
                 if has_raise_right and player_stacks[player] >= (current_bet + min_raise):
@@ -69,8 +68,8 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                     active_players.remove(player)
                     print(f"{player} はフォールドしました。")
                 elif action == "C":
-                    player_bets[player] += call_amount
                     player_stacks[player] -= call_amount
+                    player_bets[player] += call_amount
                     print(f"{player} はコールしました ({call_amount})。")
                 elif action == "K":
                     print(f"{player} はチェックしました。")
@@ -83,8 +82,8 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                             
                             min_raise = raise_amount - current_bet
                             current_bet = raise_amount
+                            player_stacks[player] -= (raise_amount - player_bets[player])  # 修正: 追加分だけ減らす
                             player_bets[player] = raise_amount
-                            player_stacks[player] -= raise_amount
                             last_raiser = player
                             has_raise_right = True  
                             print(f"{player} は {raise_amount} にレイズしました。")
@@ -109,6 +108,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
         if all_called or len(active_players) == 1:
             print("プリフロップ終了")
             return process_pots(player_bets, player_stacks, active_players, all_in_players)
+
 
 
 def display_pot_info(player_bets, player_stacks):
