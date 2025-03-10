@@ -17,7 +17,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
     player_bets = {name: 0 for name in action_order}
     player_stacks = {player["name"]: player["stack"] for player in players}
     active_players = set(action_order)
-    all_in_players = []
+    all_in_players = set()
     last_raiser = None
     has_raise_right = True  
 
@@ -34,8 +34,8 @@ def preflop_action(players, player_positions, small_blind, big_blind):
     while True:
         all_called = True
         
-        for player in action_order:
-            if player not in active_players:
+        for player in action_order[:]:  # 途中でアクション順を変更するためコピーを使用
+            if player not in active_players or player in all_in_players:
                 continue
             
             if last_raiser and player == last_raiser:
@@ -95,7 +95,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                     all_in_amount = player_stacks[player] + player_bets[player] 
                     player_bets[player] = all_in_amount
                     player_stacks[player] = 0
-                    all_in_players.append((player, all_in_amount))
+                    all_in_players.add(player)  # 修正: オールインプレイヤーを追跡し、再アクションできないようにする
                     if all_in_amount > current_bet:
                         current_bet = all_in_amount
                         last_raiser = player
@@ -111,6 +111,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
 
 
 
+
 def display_pot_info(player_bets, player_stacks):
     """ 現在のポット状況を表示する """
     print("\n=== 現在のポット情報 ===")
@@ -123,7 +124,7 @@ def display_pot_info(player_bets, player_stacks):
 
 def process_pots(player_bets, player_stacks, active_players, all_in_players):
     """ サイドポットとメインポットを作成する """
-    
+
     # プレイヤーが1人だけなら、そのプレイヤーが勝ち
     if len(active_players) == 1:
         winner = next(iter(active_players))  # 唯一のプレイヤーを取得
@@ -137,27 +138,36 @@ def process_pots(player_bets, player_stacks, active_players, all_in_players):
 
         return player_bets, player_stacks, total_pot, active_players
     
-    # サイドポットの処理
+    # all_in_players から (player, bet_amount) のリストを作成
+    sorted_all_in = sorted([(player, player_bets[player]) for player in all_in_players], key=lambda x: x[1])  
+
     pot_list = []
-    sorted_all_in = sorted(all_in_players, key=lambda x: x[1])  
     previous_all_in_amount = 0
+    remaining_active_players = set(active_players)  # まだアクティブなプレイヤー
 
-    for i, (all_in_player, all_in_amount) in enumerate(sorted_all_in):
+    for all_in_player, all_in_amount in sorted_all_in:
         pot_size = 0
-        eligible_players = set(active_players)  
+        eligible_players = set(remaining_active_players)  # このポットに参加するプレイヤー
 
-        for player in active_players:
+        # 各プレイヤーのベットを差し引きながらポットを作成
+        for player in eligible_players.copy():
             contribution = min(all_in_amount - previous_all_in_amount, player_bets[player])
             pot_size += contribution
             player_bets[player] -= contribution
-        
+
+            # すべてのベットを支払ったプレイヤーは、今後のポットには参加しない
+            if player_bets[player] == 0:
+                remaining_active_players.discard(player)
+
         pot_list.append((pot_size, eligible_players))
         previous_all_in_amount = all_in_amount
 
+    # 残ったベットをメインポットとして処理
     remaining_pot = sum(player_bets.values())
     if remaining_pot > 0:
-        pot_list.append((remaining_pot, active_players))
+        pot_list.append((remaining_pot, remaining_active_players))
 
+    # 各プレイヤーのベットをリセット
     for player in player_bets:
         player_bets[player] = 0
 
