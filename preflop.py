@@ -67,6 +67,11 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                 if action == "F":
                     active_players.remove(player)
                     print(f"{player} はフォールドしました。")
+
+                    # もし残っているプレイヤーが1人なら、即終了
+                    if len(active_players) == 1:
+                        print("プリフロップ終了")
+                        return process_pots(player_bets, player_stacks, active_players, all_in_players)
                 elif action == "C":
                     player_stacks[player] -= call_amount
                     player_bets[player] += call_amount
@@ -77,16 +82,31 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                     while True:
                         try:
                             raise_amount = int(input("レイズ額を入力してください: "))
-                            if raise_amount < current_bet + min_raise or raise_amount > player_stacks[player]:
-                                raise ValueError(f"無効なレイズ額です。最低 {current_bet + min_raise} 以上、最大 {player_stacks[player]} までです。")
+                            max_possible_raise = player_stacks[player] + player_bets[player]
                             
-                            min_raise = raise_amount - current_bet
-                            current_bet = raise_amount
-                            player_stacks[player] -= (raise_amount - player_bets[player])  # 修正: 追加分だけ減らす
-                            player_bets[player] = raise_amount
-                            last_raiser = player
-                            has_raise_right = True  
-                            print(f"{player} は {raise_amount} にレイズしました。")
+                            if raise_amount < current_bet + min_raise or raise_amount > max_possible_raise:
+                                raise ValueError(f"無効なレイズ額です。最低 {current_bet + min_raise} 以上、最大 {max_possible_raise} までです。")
+
+                            if raise_amount == max_possible_raise:
+                                # レイズ額がオールイン額と同じならオールイン処理
+                                all_in_amount = max_possible_raise
+                                player_bets[player] = all_in_amount
+                                player_stacks[player] = 0
+                                all_in_players.add(player)
+                                if all_in_amount > current_bet:
+                                    current_bet = all_in_amount
+                                    last_raiser = player
+                                print(f"{player} はオールインしました ({all_in_amount})。")
+                            else:
+                                # 通常のレイズ処理
+                                min_raise = raise_amount - current_bet
+                                current_bet = raise_amount
+                                player_stacks[player] -= (raise_amount - player_bets[player])  # 追加分だけ減らす
+                                player_bets[player] = raise_amount
+                                last_raiser = player
+                                has_raise_right = True  
+                                print(f"{player} は {raise_amount} にレイズしました。")
+                            
                             all_called = False
                             break
                         except ValueError as e:
@@ -109,6 +129,10 @@ def preflop_action(players, player_positions, small_blind, big_blind):
         if all(player in all_in_players or player_bets[player] == current_bet for player in active_players):
             print("プリフロップ終了")
             return process_pots(player_bets, player_stacks, active_players, all_in_players)
+        
+        # フォールドした last_raiser を無効化する
+        if last_raiser and last_raiser not in active_players:
+            last_raiser = None
 
 
 
