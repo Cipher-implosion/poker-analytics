@@ -13,7 +13,7 @@ def main():
     # print("ポジション情報:", player_positions)
     
      # プリフロップの処理を実行
-    preflop_bets = preflop_action([{'name': 'soma', 'stack': 20000}, {'name': 'cipher', 'stack': 20000}], 
+    preflop_bets = preflop_action([{'name': 'soma', 'stack': 1000}, {'name': 'cipher', 'stack': 20000}], 
                                   {'soma': 'SB', 'cipher': 'BB'}, 100, 300)
     print("プリフロップのベット情報:", preflop_bets)
 

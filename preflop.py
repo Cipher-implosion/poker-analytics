@@ -49,8 +49,6 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                 if player_bets[player] < current_bet:
                     if player_stacks[player] >= call_amount:
                         available_actions.append("C")
-                    else:
-                        available_actions.append("A")  
                 else:
                     available_actions.append("K")  
                 
@@ -114,7 +112,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
 
 
 def display_pot_info(player_bets, player_stacks):
-    """ 現在の状況を表示する """
+    """ 現在のポット状況を表示する """
     print("\n=== 現在のポット情報 ===")
     total_pot = sum(player_bets.values())
     print(f"ポットサイズ: {total_pot}")
