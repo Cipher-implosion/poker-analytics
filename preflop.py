@@ -105,7 +105,8 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                 display_pot_info(player_bets, player_stacks)  # アクション後にポット情報を表示
                 break  
         
-        if all_called or len(active_players) == 1:
+        # すべてのプレイヤーがオールインするか、同じ額でコールし終えたら終了
+        if all(player in all_in_players or player_bets[player] == current_bet for player in active_players):
             print("プリフロップ終了")
             return process_pots(player_bets, player_stacks, active_players, all_in_players)
 
