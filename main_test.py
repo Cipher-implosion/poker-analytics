@@ -1,22 +1,34 @@
-from game_settings import get_blinds, get_num_players, get_players, assign_positions
 from preflop import preflop_action
 
+def get_players(num_players):
+    default_players = [
+        {'name': 'Alice', 'stack': 5000},
+        {'name': 'Bob', 'stack': 7000},
+        {'name': 'Charlie', 'stack': 10000},
+        {'name': 'David', 'stack': 8000},
+        {'name': 'Eve', 'stack': 12000},
+        {'name': 'Frank', 'stack': 9000},
+        {'name': 'Grace', 'stack': 15000},
+        {'name': 'Hank', 'stack': 11000},
+        {'name': 'Ivy', 'stack': 13000}
+    ]
+    return default_players[:num_players]
+
+
+def assign_positions(players):
+    positions = ['SB', 'BB'] + ['UTG', 'MP', 'CO', 'BTN'][:len(players)-2]
+    return {player['name']: pos for player, pos in zip(players, positions)}
+
+
 def main():
-    # small_blind, big_blind = get_blinds()
-    # num_players = get_num_players()  # ここで人数を取得
-    # players = get_players(num_players)  # num_players を渡す
-    # player_positions = assign_positions(players)
-
-    # print("スモールブラインド:", small_blind)
-    # print("ビッグブラインド:", big_blind)
-    # print("プレイヤー情報:", players)
-    # print("ポジション情報:", player_positions)
+    num_players = int(input("プレイヤー数を入力してください（2〜9）: "))
+    players = get_players(num_players)
+    positions = assign_positions(players)
+    sb = 100
+    bb = 300
     
-     # プリフロップの処理を実行
-    preflop_bets = preflop_action([{'name': 'soma', 'stack': 1000}, {'name': 'cipher', 'stack': 20000}], 
-                                  {'soma': 'SB', 'cipher': 'BB'}, 100, 300)
+    preflop_bets = preflop_action(players, positions, sb, bb)
     print("プリフロップのベット情報:", preflop_bets)
-
 
 
 if __name__ == "__main__":
