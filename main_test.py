@@ -16,12 +16,13 @@ def get_players(num_players):
 
 
 def assign_positions(players):
-    positions = ['SB', 'BB'] + ['UTG', 'MP', 'CO', 'BTN'][:len(players)-2]
+    positions = ['SB', 'BB'] + ["BTN", "SB", "BB", "UTG", "UTG+1", "MP1", "MP2", "HJ", "CO"][:len(players)-2]
     return {player['name']: pos for player, pos in zip(players, positions)}
 
 
 def main():
     num_players = int(input("プレイヤー数を入力してください（2〜9）: "))
+    print("取得したプレイヤー数:", num_players)  # デバッグ用
     players = get_players(num_players)
     positions = assign_positions(players)
     sb = 100

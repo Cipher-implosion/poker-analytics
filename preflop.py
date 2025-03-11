@@ -148,6 +148,14 @@ def display_pot_info(player_bets, player_stacks):
 
 
 def process_pots(player_bets, player_stacks, active_players, all_in_players):
+    if len(active_players) == 2 and len(all_in_players) == 1:
+    # 2人ヘッズアップで、片方がオールインの場合は強制的にメインポットにする
+        pot_size = sum(player_bets.values())
+        print(f"メインポット: {pot_size} (参加プレイヤー: {', '.join(active_players)})")
+        pot_list.append((pot_size, active_players, order_of_action.copy()))
+        return pot_list, player_bets, player_stacks, active_players
+
+
     """ サイドポットとメインポットを作成する """
 
     # プレイヤーが1人だけなら、そのプレイヤーが勝ち
