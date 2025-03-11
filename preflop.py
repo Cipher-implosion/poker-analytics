@@ -46,7 +46,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                 available_actions = ["F"]
                 call_amount = max(0, current_bet - player_bets[player])  # 修正: 二重控除防止
                 
-                if player_stacks[player] >= call_amount:
+                if player_stacks[player] >= call_amount and player_bets[player] != current_bet:
                     available_actions.append("C")
                 if player_bets[player] == current_bet:
                     available_actions.append("K")  
@@ -75,7 +75,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
                 elif action == "C":
                     player_stacks[player] -= call_amount
                     player_bets[player] += call_amount
-                    print(f"{player} はコールしました ({call_amount})。")
+                    print(f"{player} はコールしました。")
                 elif action == "K":
                     print(f"{player} はチェックしました。")
                 elif action == "R":
@@ -130,7 +130,7 @@ def preflop_action(players, player_positions, small_blind, big_blind):
             print("プリフロップ終了")
             return process_pots(player_bets, player_stacks, active_players, all_in_players)
         
-        # フォールドした last_raiser を無効化する
+        # フォールドした last_raiser を無効化する(ヘッズSBフォールド時)
         if last_raiser and last_raiser not in active_players:
             last_raiser = None
 
@@ -161,20 +161,23 @@ def process_pots(player_bets, player_stacks, active_players, all_in_players):
         print(f"獲得ポット: {total_pot}")
         print("========================\n")
 
-        return player_bets, player_stacks, total_pot, active_players
-    
-    # all_in_players から (player, bet_amount) のリストを作成
-    sorted_all_in = sorted([(player, player_bets[player]) for player in all_in_players], key=lambda x: x[1])  
+        return [(total_pot, {winner}, [winner])], player_bets, player_stacks, active_players
+
+    # all_in_players をベット額の少ない順にソート（オールイン額ごとにサイドポットを作成する）
+    sorted_all_in = sorted([(player, player_bets[player]) for player in all_in_players], key=lambda x: x[1])
 
     pot_list = []
     previous_all_in_amount = 0
     remaining_active_players = set(active_players)  # まだアクティブなプレイヤー
+    order_of_action = list(active_players)  # アクション順を記録
 
-    for all_in_player, all_in_amount in sorted_all_in:
+    print("\n=== 確定したポット情報 ===")
+
+    for index, (all_in_player, all_in_amount) in enumerate(sorted_all_in):
         pot_size = 0
         eligible_players = set(remaining_active_players)  # このポットに参加するプレイヤー
 
-        # 各プレイヤーのベットを差し引きながらポットを作成
+        # 各プレイヤーのベットをポットへ振り分け
         for player in eligible_players.copy():
             contribution = min(all_in_amount - previous_all_in_amount, player_bets[player])
             pot_size += contribution
@@ -184,22 +187,22 @@ def process_pots(player_bets, player_stacks, active_players, all_in_players):
             if player_bets[player] == 0:
                 remaining_active_players.discard(player)
 
-        pot_list.append((pot_size, eligible_players))
+        pot_type = "メインポット" if index == 0 else f"サイドポット {index}"
+        print(f"{pot_type}: {pot_size} (参加プレイヤー: {', '.join(eligible_players)})")
+        
+        pot_list.append((pot_size, eligible_players, order_of_action.copy()))
         previous_all_in_amount = all_in_amount
 
-    # 残ったベットをメインポットとして処理
+    # 残ったベットをメインポットまたは最後のサイドポットとして処理
     remaining_pot = sum(player_bets.values())
     if remaining_pot > 0:
-        pot_list.append((remaining_pot, remaining_active_players))
+        print(f"サイドポット {len(pot_list)}: {remaining_pot} (参加プレイヤー: {', '.join(remaining_active_players)})")
+        pot_list.append((remaining_pot, remaining_active_players, order_of_action.copy()))
+
+    print("========================\n")
 
     # 各プレイヤーのベットをリセット
     for player in player_bets:
         player_bets[player] = 0
 
-    # 確定したポット情報を表示
-    print("\n=== 確定したポット情報 ===")
-    for i, (pot_size, players) in enumerate(pot_list):
-        print(f"ポット {i+1}: {pot_size} (参加プレイヤー: {', '.join(players)})")
-    print("========================\n")
-
-    return player_bets, player_stacks, sum(pot_size for pot_size, _ in pot_list), active_players
+    return pot_list, player_bets, player_stacks, active_players
