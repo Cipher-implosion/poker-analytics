@@ -16,7 +16,7 @@ def main():
     # データベース接続確認
     check_connection()
 
-    # ブラインドの取得s
+    # ブラインドの取得
     small_blind, big_blind = get_blinds()
     num_players = get_num_players()  # ここで人数を取得
     players = get_players(num_players)  # num_players を渡す

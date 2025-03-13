@@ -16,7 +16,7 @@ def get_players(num_players):
 
 
 def assign_positions(players):
-    positions = ["BTN", "SB", "BB", "UTG", "UTG+1", "MP1", "MP2", "HJ", "CO"][:len(players)-2]
+    positions = ["BTN", "SB", "BB", "UTG", "UTG+1", "MP1", "MP2", "HJ", "CO"][:len(players)]
     return {player['name']: pos for player, pos in zip(players, positions)}
 
 
