@@ -148,6 +148,22 @@ def display_pot_info(player_bets, player_stacks):
 
 
 def process_pots(player_bets, player_stacks, active_players, all_in_players):
+
+    total_pot = sum(player_bets.values())  # ポットの合計
+    order_of_action = list(active_players)  # アクション順を記録
+    
+     # オールインしたプレイヤーがいない場合、シンプルにメインポットを作成
+    if not all_in_players:
+        print("\n=== 確定したポット情報 ===")
+        print(f"メインポット: {total_pot} (参加プレイヤー: {', '.join(active_players)})")
+        print("========================\n")
+
+        # 各プレイヤーのベットをリセット
+        for player in player_bets:
+            player_bets[player] = 0
+
+        return player_bets, player_stacks, total_pot, active_players
+
     if len(active_players) == 2 and len(all_in_players) == 1:
     # 2人ヘッズアップで、片方がオールインの場合は強制的にメインポットにする
         pot_size = sum(player_bets.values())
@@ -161,7 +177,6 @@ def process_pots(player_bets, player_stacks, active_players, all_in_players):
     # プレイヤーが1人だけなら、そのプレイヤーが勝ち
     if len(active_players) == 1:
         winner = next(iter(active_players))  # 唯一のプレイヤーを取得
-        total_pot = sum(player_bets.values())  # ポットの合計
         player_stacks[winner] += total_pot  # 勝者がポットを獲得
         
         print("\n=== プリフロップ終了 ===")
@@ -177,7 +192,6 @@ def process_pots(player_bets, player_stacks, active_players, all_in_players):
     pot_list = []
     previous_all_in_amount = 0
     remaining_active_players = set(active_players)  # まだアクティブなプレイヤー
-    order_of_action = list(active_players)  # アクション順を記録
 
     print("\n=== 確定したポット情報 ===")
 
